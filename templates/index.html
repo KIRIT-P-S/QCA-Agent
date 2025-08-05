@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD Validation Agent</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 12px 16px;
+            border: 2px dashed #e1e5e9;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .file-upload-label:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .file-upload-label i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .validate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .validate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .validate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .results-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .overall-status {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .status-passed {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+        }
+
+        .status-failed {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            color: white;
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            color: white;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .passed { color: #22c55e; }
+        .failed { color: #ef4444; }
+        .warning { color: #f59e0b; }
+
+        .test-results {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .test-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+
+        .test-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .test-item.passed {
+            border-left-color: #22c55e;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .test-item.failed {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        }
+
+        .test-item.warning {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .test-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .test-status.passed {
+            background: #22c55e;
+            color: white;
+        }
+
+        .test-status.failed {
+            background: #ef4444;
+            color: white;
+        }
+
+        .test-status.warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .test-details {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .test-description {
+            color: #999;
+            font-size: 0.8rem;
+            font-style: italic;
+        }
+
+        .screenshot-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .screenshot-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .screenshot-title i {
+            margin-right: 8px;
+            color: #ef4444;
+        }
+
+        .screenshot-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .screenshot-image:hover {
+            transform: scale(1.02);
+        }
+
+        .screenshot-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .screenshot-modal-content {
+            position: relative;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 15px;
+        }
+
+        .screenshot-modal-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .screenshot-close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .screenshot-close:hover {
+            color: #000;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: #166534;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #22c55e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> PRD Validation Agent</h1>
+            <p>Validate your website against Product Requirements Documents</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2><i class="fas fa-upload"></i> Input Details</h2>
+                
+                <form id="validationForm">
+                    <div class="form-group">
+                        <label for="websiteUrl">Website URL</label>
+                        <input type="url" id="websiteUrl" name="websiteUrl" placeholder="https://example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prdContent">PRD Content</label>
+                        <textarea id="prdContent" name="prdContent" placeholder="Paste your PRD content here or upload a file below..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Or Upload PRD File</label>
+                        <div class="file-upload">
+                            <input type="file" id="prdFile" accept=".txt,.doc,.docx,.pdf">
+                            <label for="prdFile" class="file-upload-label">
+                                <i class="fas fa-file-upload"></i>
+                                Choose PRD file or drag and drop here
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="validate-btn" id="validateBtn">
+                        <i class="fas fa-play"></i> Start Validation
+                    </button>
+                </form>
+            </div>
+
+            <div class="results-section">
+                <h2><i class="fas fa-chart-bar"></i> Validation Results</h2>
+                
+                <div id="initialState">
+                    <div class="loading">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Enter website URL and PRD content to start validation</p>
+                    </div>
+                </div>
+
+                <div id="loadingState" class="hidden">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Running validation tests...</p>
+                        <p>This may take a few moments</p>
+                    </div>
+                </div>
+
+                <div id="resultsState" class="hidden">
+                    <div id="overallStatus" class="overall-status status-pending">
+                        <i class="fas fa-clock"></i> Validation Pending
+                    </div>
+
+                    <div class="summary-stats">
+                        <div class="stat-card">
+                            <div class="stat-number passed" id="passedCount">0</div>
+                            <div class="stat-label">Passed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number failed" id="failedCount">0</div>
+                            <div class="stat-label">Failed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number warning" id="warningCount">0</div>
+                            <div class="stat-label">Warnings</div>
+                        </div>
+                    </div>
+
+                    <div class="test-results" id="testResults">
+                        <!-- Test results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div id="screenshotModal" class="screenshot-modal">
+        <div class="screenshot-modal-content">
+            <span class="screenshot-close" onclick="closeScreenshotModal()">&times;</span>
+            <img id="modalImage" class="screenshot-modal-image" src="" alt="Screenshot">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('validationForm');
+            const websiteUrlInput = document.getElementById('websiteUrl');
+            const prdContentTextarea = document.getElementById('prdContent');
+            const prdFileInput = document.getElementById('prdFile');
+            const validateBtn = document.getElementById('validateBtn');
+            
+            const initialState = document.getElementById('initialState');
+            const loadingState = document.getElementById('loadingState');
+            const resultsState = document.getElementById('resultsState');
+
+            // File upload handling
+            prdFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        prdContentTextarea.value = e.target.result;
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            // Form submission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const websiteUrl = websiteUrlInput.value.trim();
+                const prdContent = prdContentTextarea.value.trim();
+                
+                if (!websiteUrl || !prdContent) {
+                    alert('Please provide both website URL and PRD content');
+                    return;
+                }
+
+                // Show loading state
+                showLoadingState();
+                
+                try {
+                    const response = await fetch('/validate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            website_url: websiteUrl,
+                            prd_content: prdContent
+                        })
+                    });
+
+                    const results = await response.json();
+                    
+                    if (response.ok) {
+                        displayResults(results);
+                    } else {
+                        showError(results.error || 'Validation failed');
+                    }
+                } catch (error) {
+                    showError('Network error: ' + error.message);
+                }
+            });
+
+            function showLoadingState() {
+                initialState.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+                resultsState.classList.add('hidden');
+                validateBtn.disabled = true;
+            }
+
+            function showError(message) {
+                initialState.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                resultsState.classList.add('hidden');
+                validateBtn.disabled = false;
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+                
+                const inputSection = document.querySelector('.input-section');
+                inputSection.insertBefore(errorDiv, inputSection.firstChild);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
+            }
+
+            function displayResults(results) {
+                initialState.classList.add('hidden');
+                loadingState.classList.add('hidden');
+                resultsState.classList.remove('hidden');
+                validateBtn.disabled = false;
+
+                // Update overall status
+                const overallStatus = document.getElementById('overallStatus');
+                overallStatus.className = `overall-status status-${results.overall_status}`;
+                
+                let statusIcon = 'fas fa-clock';
+                let statusText = 'Validation Pending';
+                
+                switch(results.overall_status) {
+                    case 'passed':
+                        statusIcon = 'fas fa-check-circle';
+                        statusText = 'All Tests Passed!';
+                        break;
+                    case 'failed':
+                        statusIcon = 'fas fa-times-circle';
+                        statusText = 'Some Tests Failed';
+                        break;
+                    case 'warning':
+                        statusIcon = 'fas fa-exclamation-triangle';
+                        statusText = 'Tests Completed with Warnings';
+                        break;
+                }
+                
+                overallStatus.innerHTML = `<i class="${statusIcon}"></i> ${statusText}`;
+
+                // Update summary stats
+                document.getElementById('passedCount').textContent = results.summary.passed;
+                document.getElementById('failedCount').textContent = results.summary.failed;
+                document.getElementById('warningCount').textContent = results.summary.warnings;
+
+                // Display test results
+                const testResultsContainer = document.getElementById('testResults');
+                testResultsContainer.innerHTML = '';
+
+                results.tests.forEach(test => {
+                    const testItem = document.createElement('div');
+                    testItem.className = `test-item ${test.status}`;
+                    
+                    let screenshotHTML = '';
+                    if (test.screenshot) {
+                        screenshotHTML = `
+                            <div class="screenshot-container">
+                                <div class="screenshot-title">
+                                    <i class="fas fa-camera"></i>
+                                    Screenshot - ${test.screenshot.test_name}
+                                </div>
+                                <img src="data:image/png;base64,${test.screenshot.base64}" 
+                                     alt="Screenshot of ${test.name}" 
+                                     class="screenshot-image"
+                                     onclick="openScreenshotModal('data:image/png;base64,${test.screenshot.base64}')">
+                            </div>
+                        `;
+                    }
+                    
+                    testItem.innerHTML = `
+                        <div class="test-header">
+                            <div class="test-name">${test.name}</div>
+                            <div class="test-status ${test.status}">${test.status}</div>
+                        </div>
+                        <div class="test-details">${test.details}</div>
+                        <div class="test-description">${test.description}</div>
+                        ${screenshotHTML}
+                    `;
+                    
+                    testResultsContainer.appendChild(testItem);
+                });
+            }
+
+            // Screenshot modal functions
+            function openScreenshotModal(imageSrc) {
+                const modal = document.getElementById('screenshotModal');
+                const modalImg = document.getElementById('modalImage');
+                modalImg.src = imageSrc;
+                modal.style.display = 'block';
+            }
+
+            function closeScreenshotModal() {
+                const modal = document.getElementById('screenshotModal');
+                modal.style.display = 'none';
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modal = document.getElementById('screenshotModal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
