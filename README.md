@@ -38,7 +38,7 @@ The agent performs the following tests:
 
 1. **Clone or download the project**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/KIRIT-P-S/QCA-Agent.git
    cd prd-validation-agent
    ```
 
@@ -211,4 +211,5 @@ For issues and questions:
 - Integration with CI/CD pipelines
 - Advanced SEO analysis
 - Accessibility compliance checking
+
 - Performance benchmarking 
